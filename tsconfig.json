@@ -5,6 +5,9 @@
     "compilerOptions": {}
   },
   "compilerOptions": {
-    // typescript options here
+    "target": "ES5",
+    "lib": ["ESNext"],
+
+    "strict": true
   }
 }
