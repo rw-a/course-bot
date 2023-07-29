@@ -4,13 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.ts"
+    "dev": "nodemon index.ts",
+    "start": "ts-node index.ts",
+    "commands": "npx tsc commands/**/*.ts; ts-node deploy-commands.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^14.11.0",
-    "dotenv": "^16.3.1"
+    "discord.js": "^14.11.0"
   },
   "devDependencies": {
     "@swc/cli": "^0.1.62",
