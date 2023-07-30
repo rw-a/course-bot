@@ -10,23 +10,23 @@ export default class CoursesStorage {
         this.courses = JSON.parse(coursesRawData.toString());
     }
 
-    save_storage() {
+    saveStorage() {
         fs.writeFileSync(this.COURSES_FILE, JSON.stringify(this.courses));
     }
 
-    add_course(courseCode: string) {
+    addCourse(courseCode: string) {
         this.courses.push(courseCode);
         this.courses.sort();
 
-        this.save_storage();
+        this.saveStorage();
     }
 
-    delete_course(courseCode: string) {
+    deleteCourse(courseCode: string) {
         if (this.courses.includes(courseCode)) {
             const index = this.courses.indexOf(courseCode);
             this.courses.splice(index);
         }
         
-        this.save_storage();
+        this.saveStorage();
     }
 }
