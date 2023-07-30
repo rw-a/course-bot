@@ -1,0 +1,7 @@
+{
+    "watch": ["index.ts", "events/*.ts"],
+    "ext": "ts,json",
+    "ignore": [],
+    "exec": "swc events/*.ts -d events; ts-node ./index.ts"
+  }
+  
