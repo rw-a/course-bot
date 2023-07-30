@@ -5,7 +5,7 @@ module.exports = {
 		.setName('courses')
 		.setDescription('Gets the list of courses.'),
 	async execute(interaction: CommandInteraction) {
-		console.log("Courses");
+		console.log(await interaction.guild?.fetchOnboarding());
 		await interaction.reply('Here are the courses:');
 	},
 };
