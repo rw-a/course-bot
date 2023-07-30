@@ -2,6 +2,6 @@
     "watch": ["index.ts", "events/*.ts"],
     "ext": "ts,json",
     "ignore": [],
-    "exec": "swc events/*.ts -d events; ts-node ./index.ts"
+    "exec": "swc events/*.ts -d events; swc commands/*.ts -d commands; ts-node ./index.ts"
   }
   
