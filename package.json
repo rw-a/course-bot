@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "start": "ts-node src/index.ts",
-    "commands": "npx swc src/commands/*.ts; ts-node deploy-commands.ts"
+    "commands": "npx swc src/commands/*.ts -d dist; ts-node deploy-commands.ts"
   },
   "author": "",
   "license": "ISC",
