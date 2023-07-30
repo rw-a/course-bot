@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import CONFIG from "./config.json";
+import CONFIG from "../config.json";
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { CommandClient } from "./types";
 

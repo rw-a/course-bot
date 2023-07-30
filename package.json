@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.ts",
-    "start": "ts-node index.ts",
-    "commands": "npx tsc commands/**/*.ts; ts-node deploy-commands.ts"
+    "dev": "nodemon src/index.ts",
+    "start": "ts-node src/index.ts",
+    "commands": "npx swc src/commands/*.ts; ts-node deploy-commands.ts"
   },
   "author": "",
   "license": "ISC",
