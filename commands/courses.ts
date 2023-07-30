@@ -1,10 +1,10 @@
-import { SlashCommandBuilder } from 'discord.js';
+import { SlashCommandBuilder, CommandInteraction } from 'discord.js';
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('courses')
 		.setDescription('Gets the list of courses.'),
-	async execute(interaction) {
+	async execute(interaction: CommandInteraction) {
 		console.log("Courses");
 		await interaction.reply('Here are the courses:');
 	},
