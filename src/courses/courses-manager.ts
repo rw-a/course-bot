@@ -24,10 +24,10 @@ export default class CoursesManager {
 
     getChannelMap() {
         // Maps channel name to the channel object
-        const channels = new Map<string, GuildTextBasedChannel>();
+        const channels = new Map<Lowercase<string>, GuildTextBasedChannel>();
         for (const [channelID, channel] of this.guild.channels.cache) {
             if (channel.isTextBased()) {
-                channels.set(channel.name, channel);
+                channels.set(channel.name.toLowerCase() as Lowercase<string>, channel);
             }
         }
         return channels;
@@ -80,7 +80,7 @@ export default class CoursesManager {
                 }
     
                 // Create channel for course if missing
-                if (!channels.has(courseCode)) {
+                if (!channels.has(courseCode.toLowerCase() as Lowercase<string>)) {
                     this.createChannel(courseCode, channelCategory);
                     response += `Created a channel for ${courseCode}\n`;
                 }
