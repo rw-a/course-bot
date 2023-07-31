@@ -146,7 +146,7 @@ export default class CoursesManager {
         await this.guild.client.rest.put(Routes.guildOnboarding(this.guild.id), {body: this.onboarding});
     }
 
-    async syncCoursesWithServer() {
+    async generateCourses() {
         // Reads the courses stored in JSON and migrates them into the server
         // Creates a role, channel and onboarding question for each course
 
@@ -213,13 +213,54 @@ export default class CoursesManager {
     }
 
     async addCourse(courseCode: string) {
+        let response = "";
+
         this.courses.addCourse(courseCode);
-        this.createRole(courseCode).catch(console.error);
-        const categoryChannel = await this.getCategoryChannel(courseCode);
-        this.createChannel(courseCode, categoryChannel).catch(console.error);
+        
+        const roles = this.getRoleMap();
+        const channels = this.getChannelMap();
+        
+        const courseGroup = courseCode.slice(0, 4);
+
+        // Get the associated channel category for the course group, or create it if missing
+        const channelCategory = await this.getCategoryChannel(courseGroup);   // not ideal but works
+
+        // Get the associated onboarding prompt for the course group, or create it if missing
+        const onboardingPrompt = this.getOnBoardingPrompt(courseGroup);
+        const onBoardingPromptOptions = this.getOnboardingPromptOptionMap(onboardingPrompt);
+
+        let role: Role;
+        if (roles.has(courseCode)) {
+            role = roles.get(courseCode) as Role;
+        } else {
+            role = await this.createRole(courseCode);
+            response += `Created a role for ${courseCode}\n`;
+        }
+
+        // Create channel for course if missing
+        let channel: GuildTextBasedChannel;
+        if (channels.has(courseCode.toLowerCase() as Lowercase<string>)) {
+            channel = channels.get(courseCode.toLowerCase() as Lowercase<string>) as GuildTextBasedChannel;
+        } else {
+            channel = await this.createChannel(courseCode, channelCategory);
+            response += `Created a channel for ${courseCode}\n`;
+        }
+
+        // Create option for course if missing
+        if (!onBoardingPromptOptions.has(courseCode)) {
+            onboardingPrompt.options.push(this.createOnboardingPromptOption(courseCode, [role.id], [channel.id]));
+            response += `Created an onboarding prompt for ${courseCode}\n`;
+            this.sendOnboardingInfo();
+        }
+
+        return response;
     }
 
     deleteCourse(courseCode: string) {
+        let response = "";
+
+        const courseGroup = courseCode.slice(0, 4);
+
         this.courses.deleteCourse(courseCode);
 
         const roles = this.getRoleMap();
@@ -228,7 +269,33 @@ export default class CoursesManager {
         const role = roles.get(courseCode);
         const channel = channels.get(courseCode.toLowerCase() as Lowercase<string>);
 
-        if (role) this.guild.roles.delete(role);
-        if (channel) this.guild.channels.delete(channel);
+        if (role) {
+            this.guild.roles.delete(role);
+            response += `Deleted role for ${courseCode}\n`;
+        }
+        if (channel) {
+            this.guild.channels.delete(channel);
+            response += `Deleted channel for ${courseCode}\n`;
+        }
+
+        // Delete the onboarding prompt option
+        const onboardingPrompt = this.getOnBoardingPrompt(courseGroup);
+        for (const [index, onboardingPromptOption] of Object.entries(onboardingPrompt.options)) {
+            if (onboardingPromptOption.title === courseCode) {
+                onboardingPrompt.options.splice(index as unknown as number);
+
+                // If the last option was deleted, also delete the entire prompt
+                if (onboardingPrompt.options.length === 0) {
+                    const promptIndex = this.onboarding.prompts.map((prompt => prompt.title)).indexOf(courseGroup);
+                    this.onboarding.prompts.splice(promptIndex);
+                }
+
+                this.sendOnboardingInfo();
+                response += `Deleted onboarding prompt for ${courseCode}\n`;
+                break;
+            }
+        }
+
+        return response;
     }
 }

@@ -24,6 +24,9 @@ export default class CoursesStorage {
     addCourse(courseCode: string) {
         const courseGroup = courseCode.slice(0, 4);
         if (this.courses.hasOwnProperty(courseGroup)) {
+            if (this.courses[courseGroup].includes(courseCode)) {
+                return;
+            }
             this.courses[courseGroup].push(courseCode);
             this.courses[courseGroup].sort();
         } else {

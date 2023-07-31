@@ -3,8 +3,8 @@ import CoursesManager from "../courses/courses-manager";
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('sync')
-		.setDescription('Copies the database of courses into the server.')
+		.setName('generate')
+		.setDescription('Generates the roles, channels and onboarding questions of newly added courses.')
         .setDefaultMemberPermissions(8),    // admin
 	async execute(interaction: CommandInteraction) {
         if (interaction.guild) {
@@ -13,7 +13,7 @@ module.exports = {
             const coursesManager = new CoursesManager(interaction.guild);
             await coursesManager.getOnboardingData();
 
-            let response = await coursesManager.syncCoursesWithServer();
+            let response = await coursesManager.generateCourses();
             if (!response) {
                 response = "All up to date.";
             }
