@@ -12,7 +12,7 @@ module.exports = {
             const coursesManager = new CoursesManager(interaction.guild);
             let response = await coursesManager.syncCoursesWithServer();
             if (!response) {
-                response = "All up to date."
+                response = "All up to date.";
             }
             await interaction.reply(response);
         } else {
