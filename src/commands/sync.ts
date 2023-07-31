@@ -10,7 +10,10 @@ module.exports = {
         if (interaction.guild) {
             // await interaction.deferReply();
             const coursesManager = new CoursesManager(interaction.guild);
-            const response = await coursesManager.syncCoursesWithServer();
+            let response = await coursesManager.syncCoursesWithServer();
+            if (!response) {
+                response = "All up to date."
+            }
             await interaction.reply(response);
         } else {
             await interaction.reply("[ERROR] Cannot access server.");
