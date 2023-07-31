@@ -3,56 +3,88 @@ import CoursesStorage from "./courses-storage";
 import { Guild, Role, GuildTextBasedChannel, ColorResolvable, CategoryChannel } from "discord.js";
 
 export default class CoursesManager {
+    guild: Guild
     channelCategory: CategoryChannel
-    storage: CoursesStorage
+    courses: CoursesStorage
     colors: ColorsStorage
 
-    constructor(channelCategory: CategoryChannel) {
+    constructor(guild: Guild, channelCategory: CategoryChannel) {
+        this.guild = guild;
         this.channelCategory = channelCategory;
-        this.storage = new CoursesStorage();
+        this.courses = new CoursesStorage();
         this.colors = new ColorsStorage();
     }
 
-    syncCoursesWithServer(guild: Guild) {
+    getRoleMap() {
+        // Maps role name to the role object
         const roles = new Map<string, Role>();
-        for (const [roleID, role] of guild.roles.cache) {
+        for (const [roleID, role] of this.guild.roles.cache) {
             roles.set(role.name, role);
         }
-        
+        return roles;
+    }
+
+    getChannelMap() {
+        // Maps channel name to the channel object
         const channels = new Map<string, GuildTextBasedChannel>();
-        for (const [channelID, channel] of guild.channels.cache) {
+        for (const [channelID, channel] of this.guild.channels.cache) {
             if (channel.isTextBased()) {
                 channels.set(channel.name, channel);
             }
         }
+        return channels;
+    }
+
+    syncCoursesWithServer() {
+        const roles = this.getRoleMap();
+        const channels = this.getChannelMap();
 
         // Find courses which are stored but not a role
-        for (const courseCode of this.storage.courses) {
+        for (const courseCode of this.courses.courses) {
             // Create role for course if missing
             if (!roles.has(courseCode)) {
-                const color = this.colors.getColor(courseCode) as ColorResolvable;
-                guild.roles.create({
-                    name: courseCode,
-                    color: color,
-                    permissions: BigInt(0)  // no permissions
-                });
+               this.createRole(courseCode);
             }
 
             // Create channel for course if missing
             if (!channels.has(courseCode)) {
-                guild.channels.create({
-                    parent: this.channelCategory,
-                    name: courseCode
-                });
+                this.createChannel(courseCode);
             }
         }
     }
 
-    addCourse() {
-
+    async createRole(courseCode: string) {
+        const color = this.colors.getColor(courseCode) as ColorResolvable;
+        return this.guild.roles.create({
+            name: courseCode,
+            color: color,
+            permissions: BigInt(0)  // no permissions
+        });
     }
 
-    deleteCourse() {
+    async createChannel(courseCode: string) {
+        return this.guild.channels.create({
+            parent: this.channelCategory,
+            name: courseCode
+        });
+    }
 
+    addCourse(courseCode: string) {
+        this.courses.addCourse(courseCode);
+        this.createRole(courseCode).catch(console.error);
+        this.createChannel(courseCode).catch(console.error);
+    }
+
+    deleteCourse(courseCode: string) {
+        this.courses.deleteCourse(courseCode);
+
+        const roles = this.getRoleMap();
+        const channels = this.getChannelMap();
+
+        const role = roles.get(courseCode);
+        const channel = channels.get(courseCode);
+
+        if (role) this.guild.roles.delete(role);
+        if (channel) this.guild.channels.delete(channel);
     }
 }
