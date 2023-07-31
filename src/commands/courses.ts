@@ -4,7 +4,8 @@ import CoursesStorage from "../courses/courses-storage";
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('courses')
-		.setDescription('Gets the list of courses.'),
+		.setDescription('Gets the list of courses.')
+		.setDefaultMemberPermissions(8),	// admin
 	async execute(interaction: CommandInteraction) {
 		const coursesStorage = new CoursesStorage();
 

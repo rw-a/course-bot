@@ -4,7 +4,8 @@ import CoursesManager from "../courses/courses-manager";
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('sync')
-		.setDescription('Copies the database of courses into the server.'),
+		.setDescription('Copies the database of courses into the server.')
+        .setDefaultMemberPermissions(8),    // admin
 	async execute(interaction: CommandInteraction) {
         if (interaction.guild) {
             // await interaction.deferReply();
