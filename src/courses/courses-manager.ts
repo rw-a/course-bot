@@ -120,7 +120,7 @@ export default class CoursesManager {
         const channels = this.getChannelMap();
 
         const role = roles.get(courseCode);
-        const channel = channels.get(courseCode);
+        const channel = channels.get(courseCode.toLowerCase() as Lowercase<string>);
 
         if (role) this.guild.roles.delete(role);
         if (channel) this.guild.channels.delete(channel);
