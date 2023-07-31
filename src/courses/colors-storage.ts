@@ -50,7 +50,7 @@ export default class ColorsStorage {
     }
 
     saveStorage() {
-        fs.writeFileSync(this.COLORS_FILE, JSON.stringify(this.colors));
+        fs.writeFileSync(this.COLORS_FILE, JSON.stringify(this.colors, null, 2));
     }
 
     addColor(courseGroup: string, color: ColorResolvable) {

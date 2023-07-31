@@ -18,7 +18,7 @@ export default class CoursesStorage {
     }
 
     saveStorage() {
-        fs.writeFileSync(this.COURSES_FILE, JSON.stringify(this.courses));
+        fs.writeFileSync(this.COURSES_FILE, JSON.stringify(this.courses, null, 2));
     }
 
     addCourse(courseCode: string) {
