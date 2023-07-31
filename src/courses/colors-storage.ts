@@ -62,7 +62,7 @@ export default class ColorsStorage {
     }
 
     getColor(courseCode: string) {
-        const courseGroup = courseCode.slice(4);    // only get the letters of the course code
+        const courseGroup = courseCode.slice(0, 4);    // only get the letters of the course code
 
         if (this.colors.hasOwnProperty(courseGroup)) {
             return this.colors[courseGroup];
