@@ -36,6 +36,8 @@ export default class CoursesManager {
     }
 
     syncCoursesWithServer() {
+        let response = "";
+
         const roles = this.getRoleMap();
         const channels = this.getChannelMap();
 
@@ -44,13 +46,17 @@ export default class CoursesManager {
             // Create role for course if missing
             if (!roles.has(courseCode)) {
                this.createRole(courseCode);
+               response += `Created a role for ${courseCode}\n`;
             }
 
             // Create channel for course if missing
             if (!channels.has(courseCode)) {
                 this.createChannel(courseCode);
+                response += `Created a channel for ${courseCode}\n`;
             }
         }
+        
+        return response;
     }
 
     async createRole(courseCode: string) {
