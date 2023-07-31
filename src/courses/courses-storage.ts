@@ -11,6 +11,7 @@ export default class CoursesStorage {
             const coursesRawData = fs.readFileSync(this.COURSES_FILE);
             this.courses = JSON.parse(coursesRawData.toString());
         } else {
+            console.log(`WARNING: ${this.COURSES_FILE} missing. Generating a blank one.`);
             this.courses = [];
             this.saveStorage();
         }

@@ -42,6 +42,7 @@ export default class ColorsStorage {
             const colorsRawData = fs.readFileSync(this.COLORS_FILE);
             this.colors = JSON.parse(colorsRawData.toString());
         } else {
+            console.log(`WARNING: ${this.COLORS_FILE} missing. Generating a blank one.`);
             this.colors = {};
             this.saveStorage();
         }
