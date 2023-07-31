@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 export default class CoursesStorage {
-    courses: string[]
+    courses: {[key: string]: string[]}
 
     COURSES_FILE = path.join(__dirname, "..", "..", "data", "courses.json");
 
@@ -12,7 +12,7 @@ export default class CoursesStorage {
             this.courses = JSON.parse(coursesRawData.toString());
         } else {
             console.log(`WARNING: ${this.COURSES_FILE} missing. Generating a blank one.`);
-            this.courses = [];
+            this.courses = {};
             this.saveStorage();
         }
     }
@@ -22,17 +22,37 @@ export default class CoursesStorage {
     }
 
     addCourse(courseCode: string) {
-        this.courses.push(courseCode);
-        this.courses.sort();
+        const courseGroup = courseCode.slice(0, 4);
+        if (this.courses.hasOwnProperty(courseGroup)) {
+            this.courses[courseGroup].push(courseCode);
+            this.courses[courseGroup].sort();
+        } else {
+            this.courses[courseGroup] = [courseCode];
+        }
 
         this.saveStorage();
     }
 
     deleteCourse(courseCode: string) {
-        if (this.courses.includes(courseCode)) {
-            const index = this.courses.indexOf(courseCode);
-            this.courses.splice(index);
+        const courseGroup = courseCode.slice(0, 4);
+        if (this.courses.hasOwnProperty(courseGroup) && this.courses[courseGroup].includes(courseCode)) {
+            const index = this.courses[courseGroup].indexOf(courseCode);
+            this.courses[courseGroup].splice(index);
             this.saveStorage();
         }
+    }
+
+    getCourses() {
+        // Gets the courses as a map where key=courseGroup and value=courses where key is in sorted order
+        const courses = new Map<string, string[]>();
+
+        const courseGroups = Object.keys(this.courses);
+        courseGroups.sort();
+
+        for (const courseGroup of courseGroups) {
+            courses.set(courseGroup, this.courses[courseGroup]);
+        }
+
+        return courses;
     }
 }
