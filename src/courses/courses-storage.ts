@@ -7,8 +7,13 @@ export default class CoursesStorage {
     COURSES_FILE = path.join(__dirname, "..", "..", "data", "courses.json");
 
     constructor() {
-        const coursesRawData = fs.readFileSync(this.COURSES_FILE);
-        this.courses = JSON.parse(coursesRawData.toString());
+        if (fs.existsSync(this.COURSES_FILE)) {
+            const coursesRawData = fs.readFileSync(this.COURSES_FILE);
+            this.courses = JSON.parse(coursesRawData.toString());
+        } else {
+            this.courses = [];
+            this.saveStorage();
+        }
     }
 
     saveStorage() {
