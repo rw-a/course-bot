@@ -25,8 +25,7 @@ export default class CoursesStorage {
         if (this.courses.includes(courseCode)) {
             const index = this.courses.indexOf(courseCode);
             this.courses.splice(index);
+            this.saveStorage();
         }
-        
-        this.saveStorage();
     }
 }
