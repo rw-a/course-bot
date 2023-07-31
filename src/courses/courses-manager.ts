@@ -60,7 +60,7 @@ export default class CoursesManager {
     }
 
     async createRole(courseCode: string) {
-        const color = this.colors.getColor(courseCode) as ColorResolvable;
+        const color = this.colors.getColor(courseCode);
         return this.guild.roles.create({
             name: courseCode,
             color: color,

@@ -1,11 +1,12 @@
+import { ColorResolvable } from "discord.js";
 import fs from "node:fs";
 import path from "node:path";
 
 export default class ColorsStorage {
-    colors: {[key: string]: string}
+    colors: {[key: string]: ColorResolvable}
 
     COLORS_FILE = path.join(__dirname, "..", "..", "data", "colors.json");
-    DISCORD_COLORS = [
+    DISCORD_COLORS: ColorResolvable[] = [
         "White",
         "Aqua",
         "Green",
@@ -52,8 +53,8 @@ export default class ColorsStorage {
         fs.writeFileSync(this.COLORS_FILE, JSON.stringify(this.colors));
     }
 
-    addColor(courseGroup: string, color: string) {
-        this.colors[courseGroup] = JSON.parse(color);
+    addColor(courseGroup: string, color: ColorResolvable) {
+        this.colors[courseGroup] = color;
         this.saveStorage();
     }
 
