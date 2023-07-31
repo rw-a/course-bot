@@ -1,9 +1,10 @@
 import fs from "node:fs";
+import path from "node:path";
 
 export default class ColorsStorage {
     colors: {[key: string]: string}
 
-    COLORS_FILE = "colors.json" as const;
+    COLORS_FILE = path.join(__dirname, "..", "..", "data", "colors.json");
     DISCORD_COLORS = [
         "White",
         "Aqua",

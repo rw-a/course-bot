@@ -1,9 +1,10 @@
 import fs from "node:fs";
+import path from "node:path";
 
 export default class CoursesStorage {
     courses: string[]
 
-    COURSES_FILE = "courses.json" as const;
+    COURSES_FILE = path.join(__dirname, "..", "..", "data", "courses.json");
 
     constructor() {
         const coursesRawData = fs.readFileSync(this.COURSES_FILE);

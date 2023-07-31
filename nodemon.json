@@ -2,6 +2,6 @@
     "watch": ["src"],
     "ext": "ts,json",
     "ignore": [],
-    "exec": "swc src -d dist; ts-node src/index.ts"
+    "exec": "swc src -d dist; node dist/index.js"
   }
   
