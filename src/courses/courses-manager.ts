@@ -1,16 +1,40 @@
 import ColorsStorage from "./colors-storage";
 import CoursesStorage from "./courses-storage";
-import { Guild, Role, GuildTextBasedChannel, CategoryChannel, ChannelType } from "discord.js";
+import {
+    Guild, Role, GuildTextBasedChannel, CategoryChannel, ChannelType, APIGuildOnboarding, Routes,
+    APIGuildOnboardingPrompt, GuildOnboardingPromptType, APIGuildOnboardingPromptOption
+} from "discord.js";
+
+function generateID(len: number) {
+    let result = '';
+    const characters = '0123456789';
+    for (let i = 0; i < (len); i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+  }
 
 export default class CoursesManager {
     guild: Guild
     courses: CoursesStorage
     colors: ColorsStorage
+    onboarding: APIGuildOnboarding
+
+    SNOWFLAKE_LENGTH = 19 as const;
 
     constructor(guild: Guild) {
         this.guild = guild;
         this.courses = new CoursesStorage();
         this.colors = new ColorsStorage();
+    }
+
+    async getOnboardingData() {
+        this.onboarding = await this.guild.client.rest.get(Routes.guildOnboarding(this.guild.id)) as APIGuildOnboarding;
+    }
+
+    generateRandomSnowflake() {
+        const startingNumbers = "100";
+        return startingNumbers + generateID(19 - startingNumbers.length);
     }
 
     getRoleMap() {
@@ -34,14 +58,14 @@ export default class CoursesManager {
     }
 
     getChannelCategoryMap() {
-         // Maps channel name to the channel category object
-         const channels = new Map<string, CategoryChannel>();
-         for (const [channelID, channel] of this.guild.channels.cache) {
-             if (channel.type == ChannelType.GuildCategory) {
-                 channels.set(channel.name, channel);
-             }
-         }
-         return channels;
+        // Maps channel name to the channel category object
+        const channels = new Map<string, CategoryChannel>();
+        for (const [channelID, channel] of this.guild.channels.cache) {
+            if (channel.type == ChannelType.GuildCategory) {
+                channels.set(channel.name, channel);
+            }
+        }
+        return channels;
     }
 
     async getCategoryChannel(courseCode: string) {
@@ -50,43 +74,125 @@ export default class CoursesManager {
         const courseGroup = courseCode.slice(0, 4);
         const channelCategories = this.getChannelCategoryMap();
 
-        const channelCategory = (channelCategories.has(courseGroup)) ? 
-            channelCategories.get(courseGroup) 
-            : 
+        const channelCategory = (channelCategories.has(courseGroup)) ?
+            channelCategories.get(courseGroup) as CategoryChannel
+            :
             await this.guild.channels.create({
                 name: courseGroup,
                 type: ChannelType.GuildCategory
             }
-        );;
+            );
 
-        return channelCategory as CategoryChannel;
+        return channelCategory;
+    }
+
+    getOnboardingPromptMap() {
+        // Could make shorter using reduce
+        const onboardingPromptMap = new Map<string, APIGuildOnboardingPrompt>();
+        for (const onboardingPrompt of this.onboarding.prompts) {
+            onboardingPromptMap.set(onboardingPrompt.title, onboardingPrompt);
+        }
+        return onboardingPromptMap;
+    }
+
+    getOnBoardingPrompt(courseGroup: string) {
+        const onboardingPrompts = this.getOnboardingPromptMap();
+
+        let onboardingPrompt: APIGuildOnboardingPrompt; 
+        if (onboardingPrompts.has(courseGroup)) {
+            onboardingPrompt = onboardingPrompts.get(courseGroup) as APIGuildOnboardingPrompt
+        } else {
+            onboardingPrompt = this.createOnboardingPrompt(courseGroup);
+            this.onboarding.prompts.push(onboardingPrompt);
+            // this.sendOnboardingInfo();
+        }
+
+        return onboardingPrompt;
+    }
+
+    createOnboardingPrompt(title: string): APIGuildOnboardingPrompt {
+        // Note, you need to push this to Discord before adding options for the onboarding prompt to actually be created
+        return {
+            id: this.generateRandomSnowflake(),
+            title: title,
+            options: [],
+            single_select: false,
+            type: GuildOnboardingPromptType.MultipleChoice,
+            in_onboarding: false,
+            required: false
+        };
+    }
+
+    getOnboardingPromptOptionMap(onboardingPrompt: APIGuildOnboardingPrompt) {
+        const onBoardingPromptOptions = new Map<string, APIGuildOnboardingPromptOption>();
+        for (const onboardingPromptOption of onboardingPrompt.options) {
+            onBoardingPromptOptions.set(onboardingPromptOption.title, onboardingPromptOption);
+        }
+        return onBoardingPromptOptions;
+    }
+
+    createOnboardingPromptOption(title: string, roleIDs: string[] = [], channelIDs: string[] = [], description: string = ""): APIGuildOnboardingPromptOption {
+        return {
+            title: title,
+            role_ids: roleIDs,
+            channel_ids: channelIDs,
+            emoji: { id: "", name: "" },
+            id: this.generateRandomSnowflake(),
+            description: description
+        };
+    }
+
+    async sendOnboardingInfo() {
+        await this.guild.client.rest.put(Routes.guildOnboarding(this.guild.id), {body: this.onboarding});
     }
 
     async syncCoursesWithServer() {
-        let response = "";
+        // Reads the courses stored in JSON and migrates them into the server
+        // Creates a role, channel and onboarding question for each course
+
+        let response = "";  // Sent back to the user who ran the command
 
         const roles = this.getRoleMap();
         const channels = this.getChannelMap();
 
         // Find courses which are stored but not a role
         for (const [courseGroup, courseCodes] of this.courses.getCourses()) {
+            // Get the associated channel category for the course group, or create it if missing
             const channelCategory = await this.getCategoryChannel(courseGroup);   // not ideal but works
+
+            // Get the associated onboarding prompt for the course group, or create it if missing
+            const onboardingPrompt = this.getOnBoardingPrompt(courseGroup);
+            const onBoardingPromptOptions = this.getOnboardingPromptOptionMap(onboardingPrompt);
 
             for (const courseCode of courseCodes) {
                 // Create role for course if missing
-                if (!roles.has(courseCode)) {
-                   this.createRole(courseCode);
-                   response += `Created a role for ${courseCode}\n`;
+                let role: Role;
+                if (roles.has(courseCode)) {
+                    role = roles.get(courseCode) as Role;
+                } else {
+                    role = await this.createRole(courseCode);
+                    response += `Created a role for ${courseCode}\n`;
                 }
-    
+
                 // Create channel for course if missing
-                if (!channels.has(courseCode.toLowerCase() as Lowercase<string>)) {
-                    this.createChannel(courseCode, channelCategory);
+                let channel: GuildTextBasedChannel;
+                if (channels.has(courseCode.toLowerCase() as Lowercase<string>)) {
+                    channel = channels.get(courseCode.toLowerCase() as Lowercase<string>) as GuildTextBasedChannel;
+                } else {
+                    channel = await this.createChannel(courseCode, channelCategory);
                     response += `Created a channel for ${courseCode}\n`;
+                }
+
+                // Create option for course if missing
+                if (!onBoardingPromptOptions.has(courseCode)) {
+                    onboardingPrompt.options.push(this.createOnboardingPromptOption(courseCode, [role.id], [channel.id]));
+                    response += `Created an onboarding prompt for ${courseCode}\n`;
                 }
             }
         }
-        
+
+        this.sendOnboardingInfo();
+
         return response;
     }
 
