@@ -1,6 +1,7 @@
 import { ColorResolvable } from "discord.js";
 import fs from "node:fs";
 import path from "node:path";
+import { CourseCode, CourseGroup } from "../types";
 
 export default class ColorsStorage {
     colors: {[key: string]: ColorResolvable}
@@ -53,7 +54,7 @@ export default class ColorsStorage {
         fs.writeFileSync(this.COLORS_FILE, JSON.stringify(this.colors, null, 2));
     }
 
-    addColor(courseGroup: string, color: ColorResolvable) {
+    addColor(courseGroup: CourseGroup, color: ColorResolvable) {
         this.colors[courseGroup] = color;
         this.saveStorage();
     }
@@ -62,8 +63,8 @@ export default class ColorsStorage {
         return this.DISCORD_COLORS[Math.floor(Math.random() * this.DISCORD_COLORS.length)];
     }
 
-    getColor(courseCode: string) {
-        const courseGroup = courseCode.slice(0, 4);    // only get the letters of the course code
+    getColor(courseCode: CourseCode) {
+        const courseGroup = courseCode.slice(0, 4) as CourseGroup;    // only get the letters of the course code
 
         if (this.colors.hasOwnProperty(courseGroup)) {
             return this.colors[courseGroup];

@@ -15,7 +15,7 @@ module.exports = {
         if (interaction.guild) {
             // await interaction.deferReply(); // might take a while so tell Discord to be patient
 
-            const courseCode = interaction.options.getString("course_code") as string;
+            const courseCode = interaction.options.getString("course_code").toUpperCase();
 
             if (courseCode.length != 8) {
                 await interaction.reply("Invalid course code.");

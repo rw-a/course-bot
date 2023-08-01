@@ -4,6 +4,7 @@ import {
     Guild, Role, GuildTextBasedChannel, CategoryChannel, ChannelType, APIGuildOnboarding, Routes,
     APIGuildOnboardingPrompt, GuildOnboardingPromptType, APIGuildOnboardingPromptOption, resolveColor
 } from "discord.js";
+import { CourseCode, CourseGroup, ChannelName } from "../types";
 
 function generateID(len: number) {
     let result = '';
@@ -39,19 +40,19 @@ export default class CoursesManager {
 
     getRoleMap() {
         // Maps role name to the role object
-        const roles = new Map<string, Role>();
+        const roles = new Map<CourseCode, Role>();
         for (const [roleID, role] of this.guild.roles.cache) {
-            roles.set(role.name, role);
+            roles.set(role.name.toUpperCase() as CourseCode, role);
         }
         return roles;
     }
 
     getChannelMap() {
         // Maps channel name to the channel object
-        const channels = new Map<Lowercase<string>, GuildTextBasedChannel>();
+        const channels = new Map<ChannelName, GuildTextBasedChannel>();
         for (const [channelID, channel] of this.guild.channels.cache) {
             if (channel.isTextBased()) {
-                channels.set(channel.name.toLowerCase() as Lowercase<string>, channel);
+                channels.set(channel.name.toLowerCase() as ChannelName, channel);
             }
         }
         return channels;
@@ -59,19 +60,19 @@ export default class CoursesManager {
 
     getChannelCategoryMap() {
         // Maps channel name to the channel category object
-        const channels = new Map<string, CategoryChannel>();
+        const channels = new Map<CourseGroup, CategoryChannel>();
         for (const [channelID, channel] of this.guild.channels.cache) {
             if (channel.type == ChannelType.GuildCategory) {
-                channels.set(channel.name, channel);
+                channels.set(channel.name.toUpperCase() as CourseGroup, channel);
             }
         }
         return channels;
     }
 
-    async getCategoryChannel(courseCode: string) {
+    async getCategoryChannel(courseCode: CourseCode | CourseGroup) {
         // Gets the category channel of the given course code. Creates it if missing.
 
-        const courseGroup = courseCode.slice(0, 4);
+        const courseGroup = courseCode.slice(0, 4) as CourseGroup;
         const channelCategories = this.getChannelCategoryMap();
 
         const channelCategory = (channelCategories.has(courseGroup)) ?
@@ -88,14 +89,14 @@ export default class CoursesManager {
 
     getOnboardingPromptMap() {
         // Could make shorter using reduce
-        const onboardingPromptMap = new Map<string, APIGuildOnboardingPrompt>();
+        const onboardingPromptMap = new Map<CourseGroup, APIGuildOnboardingPrompt>();
         for (const onboardingPrompt of this.onboarding.prompts) {
-            onboardingPromptMap.set(onboardingPrompt.title, onboardingPrompt);
+            onboardingPromptMap.set(onboardingPrompt.title.toUpperCase() as CourseGroup, onboardingPrompt);
         }
         return onboardingPromptMap;
     }
 
-    getOnBoardingPrompt(courseGroup: string) {
+    getOnBoardingPrompt(courseGroup: CourseGroup) {
         const onboardingPrompts = this.getOnboardingPromptMap();
 
         let onboardingPrompt: APIGuildOnboardingPrompt; 
@@ -104,14 +105,12 @@ export default class CoursesManager {
         } else {
             onboardingPrompt = this.createOnboardingPrompt(courseGroup);
             this.onboarding.prompts.push(onboardingPrompt);
-            // this.sendOnboardingInfo();
         }
 
         return onboardingPrompt;
     }
 
-    createOnboardingPrompt(title: string): APIGuildOnboardingPrompt {
-        // Note, you need to push this to Discord before adding options for the onboarding prompt to actually be created
+    createOnboardingPrompt(title: CourseGroup): APIGuildOnboardingPrompt {
         return {
             id: this.generateRandomSnowflake(),
             title: title,
@@ -124,14 +123,20 @@ export default class CoursesManager {
     }
 
     getOnboardingPromptOptionMap(onboardingPrompt: APIGuildOnboardingPrompt) {
-        const onBoardingPromptOptions = new Map<string, APIGuildOnboardingPromptOption>();
+        // Maps an onboarding prompt's name to itself
+        const onBoardingPromptOptions = new Map<CourseCode, APIGuildOnboardingPromptOption>();
         for (const onboardingPromptOption of onboardingPrompt.options) {
-            onBoardingPromptOptions.set(onboardingPromptOption.title, onboardingPromptOption);
+            onBoardingPromptOptions.set(
+                onboardingPromptOption.title.toUpperCase() as CourseCode,
+                onboardingPromptOption);
         }
         return onBoardingPromptOptions;
     }
 
-    createOnboardingPromptOption(title: string, roleIDs: string[] = [], channelIDs: string[] = [], description: string = ""): APIGuildOnboardingPromptOption {
+    createOnboardingPromptOption(title: CourseCode, 
+            roleIDs: string[] = [], channelIDs: string[] = [], description: string = ""
+            ): APIGuildOnboardingPromptOption {
+
         return {
             title: title,
             role_ids: roleIDs,
@@ -176,8 +181,8 @@ export default class CoursesManager {
 
                 // Create channel for course if missing
                 let channel: GuildTextBasedChannel;
-                if (channels.has(courseCode.toLowerCase() as Lowercase<string>)) {
-                    channel = channels.get(courseCode.toLowerCase() as Lowercase<string>) as GuildTextBasedChannel;
+                if (channels.has(courseCode.toLowerCase() as ChannelName)) {
+                    channel = channels.get(courseCode.toLowerCase() as ChannelName) as GuildTextBasedChannel;
                 } else {
                     channel = await this.createChannel(courseCode, channelCategory);
                     response += `Created a channel for ${courseCode}\n`;
@@ -196,7 +201,7 @@ export default class CoursesManager {
         return response;
     }
 
-    async createRole(courseCode: string) {
+    async createRole(courseCode: CourseCode) {
         const color = this.colors.getColor(courseCode);
         return this.guild.roles.create({
             name: courseCode,
@@ -205,14 +210,14 @@ export default class CoursesManager {
         });
     }
 
-    async createChannel(courseCode: string, parent: CategoryChannel) {
+    async createChannel(courseCode: CourseCode, parent: CategoryChannel) {
         return this.guild.channels.create({
             parent: parent,
             name: courseCode
         });
     }
 
-    async addCourse(courseCode: string) {
+    async addCourse(courseCode: CourseCode) {
         let response = "";
 
         this.courses.addCourse(courseCode);
@@ -220,7 +225,7 @@ export default class CoursesManager {
         const roles = this.getRoleMap();
         const channels = this.getChannelMap();
         
-        const courseGroup = courseCode.slice(0, 4);
+        const courseGroup = courseCode.slice(0, 4) as CourseGroup;
 
         // Get the associated channel category for the course group, or create it if missing
         const channelCategory = await this.getCategoryChannel(courseGroup);   // not ideal but works
@@ -239,8 +244,8 @@ export default class CoursesManager {
 
         // Create channel for course if missing
         let channel: GuildTextBasedChannel;
-        if (channels.has(courseCode.toLowerCase() as Lowercase<string>)) {
-            channel = channels.get(courseCode.toLowerCase() as Lowercase<string>) as GuildTextBasedChannel;
+        if (channels.has(courseCode.toLowerCase() as ChannelName)) {
+            channel = channels.get(courseCode.toLowerCase() as ChannelName) as GuildTextBasedChannel;
         } else {
             channel = await this.createChannel(courseCode, channelCategory);
             response += `Created a channel for ${courseCode}\n`;
@@ -256,10 +261,10 @@ export default class CoursesManager {
         return response;
     }
 
-    deleteCourse(courseCode: string) {
+    deleteCourse(courseCode: CourseCode) {
         let response = "";
 
-        const courseGroup = courseCode.slice(0, 4);
+        const courseGroup = courseCode.slice(0, 4) as CourseGroup;
 
         this.courses.deleteCourse(courseCode);
 
@@ -267,7 +272,7 @@ export default class CoursesManager {
         const channels = this.getChannelMap();
 
         const role = roles.get(courseCode);
-        const channel = channels.get(courseCode.toLowerCase() as Lowercase<string>);
+        const channel = channels.get(courseCode.toLowerCase() as ChannelName);
 
         if (role) {
             this.guild.roles.delete(role);
