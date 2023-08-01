@@ -13,7 +13,7 @@ module.exports = {
                 .setRequired(true)),    
 	async execute(interaction: CommandInteraction) {
         if (interaction.guild) {
-            // await interaction.deferReply(); // might take a while so tell Discord to be patient
+            await interaction.deferReply();
 
             const courseCode = interaction.options.getString("course_code").toUpperCase();
 
@@ -30,7 +30,7 @@ module.exports = {
                 response = "Course already exists.";
             }
 
-            await interaction.reply(response);
+            await interaction.editReply(response);
         } else {
             await interaction.reply("[ERROR] Cannot access server.");
         }

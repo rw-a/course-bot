@@ -8,16 +8,16 @@ module.exports = {
         .setDefaultMemberPermissions(8),    // admin
 	async execute(interaction: CommandInteraction) {
         if (interaction.guild) {
-            // await interaction.deferReply(); // might take a while so tell Discord to be patient
+            await interaction.deferReply();
 
             const coursesManager = new CoursesManager(interaction.guild);
 
-            let response = coursesManager.updateColors();
+            let response = await coursesManager.updateColors();
             if (!response) {
                 response = "All up to date.";
             }
 
-            await interaction.reply(response);
+            await interaction.editReply(response);
         } else {
             await interaction.reply("[ERROR] Cannot access server.");
         }

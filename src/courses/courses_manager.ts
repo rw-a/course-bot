@@ -29,15 +29,22 @@ export default class CoursesManager {
     this.colors = new ColorsStorage();
   }
 
+  /* Getting and Sending Data */
   async getOnboardingData() {
     this.onboarding = await this.guild.client.rest.get(Routes.guildOnboarding(this.guild.id)) as APIGuildOnboarding;
   }
 
+  async sendOnboardingInfo() {
+    await this.guild.client.rest.put(Routes.guildOnboarding(this.guild.id), { body: this.onboarding });
+  }
+
+  /* Utility Functions */
   generateRandomSnowflake() {
     const startingNumbers = "100";
     return startingNumbers + generateID(19 - startingNumbers.length);
   }
 
+  /* Getting Maps */
   getRoleMap() {
     // Maps role name to the role object
     const roles = new Map<CourseCode, Role>();
@@ -69,6 +76,27 @@ export default class CoursesManager {
     return channels;
   }
 
+  getOnboardingPromptMap() {
+    // Could make shorter using reduce
+    const onboardingPromptMap = new Map<CourseGroup, APIGuildOnboardingPrompt>();
+    for (const onboardingPrompt of this.onboarding.prompts) {
+      onboardingPromptMap.set(onboardingPrompt.title.toUpperCase() as CourseGroup, onboardingPrompt);
+    }
+    return onboardingPromptMap;
+  }
+
+  getOnboardingPromptOptionMap(onboardingPrompt: APIGuildOnboardingPrompt) {
+    // Maps an onboarding prompt's name to itself
+    const onBoardingPromptOptions = new Map<CourseCode, APIGuildOnboardingPromptOption>();
+    for (const onboardingPromptOption of onboardingPrompt.options) {
+      onBoardingPromptOptions.set(
+        onboardingPromptOption.title.toUpperCase() as CourseCode,
+        onboardingPromptOption);
+    }
+    return onBoardingPromptOptions;
+  }
+
+  /* Getting Category Objects */
   async getCategoryChannel(courseCode: CourseCode | CourseGroup) {
     // Gets the category channel of the given course code. Creates it if missing.
 
@@ -87,15 +115,6 @@ export default class CoursesManager {
     return channelCategory;
   }
 
-  getOnboardingPromptMap() {
-    // Could make shorter using reduce
-    const onboardingPromptMap = new Map<CourseGroup, APIGuildOnboardingPrompt>();
-    for (const onboardingPrompt of this.onboarding.prompts) {
-      onboardingPromptMap.set(onboardingPrompt.title.toUpperCase() as CourseGroup, onboardingPrompt);
-    }
-    return onboardingPromptMap;
-  }
-
   getOnBoardingPrompt(courseGroup: CourseGroup) {
     const onboardingPrompts = this.getOnboardingPromptMap();
 
@@ -110,6 +129,7 @@ export default class CoursesManager {
     return onboardingPrompt;
   }
 
+  /* Creating Objects */
   createOnboardingPrompt(title: CourseGroup): APIGuildOnboardingPrompt {
     return {
       id: this.generateRandomSnowflake(),
@@ -120,17 +140,6 @@ export default class CoursesManager {
       in_onboarding: false,
       required: false
     };
-  }
-
-  getOnboardingPromptOptionMap(onboardingPrompt: APIGuildOnboardingPrompt) {
-    // Maps an onboarding prompt's name to itself
-    const onBoardingPromptOptions = new Map<CourseCode, APIGuildOnboardingPromptOption>();
-    for (const onboardingPromptOption of onboardingPrompt.options) {
-      onBoardingPromptOptions.set(
-        onboardingPromptOption.title.toUpperCase() as CourseCode,
-        onboardingPromptOption);
-    }
-    return onBoardingPromptOptions;
   }
 
   createOnboardingPromptOption(title: CourseCode,
@@ -147,10 +156,23 @@ export default class CoursesManager {
     };
   }
 
-  async sendOnboardingInfo() {
-    await this.guild.client.rest.put(Routes.guildOnboarding(this.guild.id), { body: this.onboarding });
+  createRole(courseCode: CourseCode) {
+    const color = this.colors.getColor(courseCode);
+    return this.guild.roles.create({
+      name: courseCode,
+      color: color,
+      permissions: BigInt(0)  // no permissions
+    });
   }
 
+  createChannel(courseCode: CourseCode, parent: CategoryChannel) {
+    return this.guild.channels.create({
+      parent: parent,
+      name: courseCode
+    });
+  }
+
+  /* Commands */
   async generateCourses() {
     // Reads the courses stored in JSON and migrates them into the server
     // Creates a role, channel and onboarding question for each course
@@ -196,25 +218,9 @@ export default class CoursesManager {
       }
     }
 
-    this.sendOnboardingInfo();
+    await this.sendOnboardingInfo();
 
     return response;
-  }
-
-  async createRole(courseCode: CourseCode) {
-    const color = this.colors.getColor(courseCode);
-    return this.guild.roles.create({
-      name: courseCode,
-      color: color,
-      permissions: BigInt(0)  // no permissions
-    });
-  }
-
-  async createChannel(courseCode: CourseCode, parent: CategoryChannel) {
-    return this.guild.channels.create({
-      parent: parent,
-      name: courseCode
-    });
   }
 
   async addCourse(courseCode: CourseCode) {
@@ -255,13 +261,13 @@ export default class CoursesManager {
     if (!onBoardingPromptOptions.has(courseCode)) {
       onboardingPrompt.options.push(this.createOnboardingPromptOption(courseCode, [role.id], [channel.id]));
       response += `Created an onboarding prompt for ${courseCode}\n`;
-      this.sendOnboardingInfo();
+      await this.sendOnboardingInfo();
     }
 
     return response;
   }
 
-  deleteCourse(courseCode: CourseCode) {
+  async deleteCourse(courseCode: CourseCode) {
     let response = "";
 
     const courseGroup = courseCode.slice(0, 4) as CourseGroup;
@@ -275,11 +281,11 @@ export default class CoursesManager {
     const channel = channels.get(courseCode.toLowerCase() as ChannelName);
 
     if (role) {
-      this.guild.roles.delete(role);
+      await this.guild.roles.delete(role);
       response += `Deleted role for ${courseCode}\n`;
     }
     if (channel) {
-      this.guild.channels.delete(channel);
+      await this.guild.channels.delete(channel);
       response += `Deleted channel for ${courseCode}\n`;
     }
 
@@ -295,7 +301,7 @@ export default class CoursesManager {
           this.onboarding.prompts.splice(promptIndex);
         }
 
-        this.sendOnboardingInfo();
+        await this.sendOnboardingInfo();
         response += `Deleted onboarding prompt for ${courseCode}\n`;
         break;
       }
@@ -304,7 +310,7 @@ export default class CoursesManager {
     return response;
   }
 
-  updateColors() {
+  async updateColors() {
     let response = "";
 
     const roles = this.getRoleMap();
@@ -320,10 +326,10 @@ export default class CoursesManager {
 
       // If the colors don't match, update the role's color
       if (expectedColor !== role.color) {
+        await role.setColor(expectedColor);
         response += `Changed color of ${roleName} from \
                     #${role.color.toString(16).toUpperCase()} \
                     to #${expectedColor.toString(16).toUpperCase()}\n`;
-        role.setColor(expectedColor);
       }
     }
 

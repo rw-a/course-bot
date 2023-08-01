@@ -13,7 +13,7 @@ module.exports = {
                 .setRequired(true)),    
 	async execute(interaction: CommandInteraction) {
         if (interaction.guild) {
-            // await interaction.deferReply(); // might take a while so tell Discord to be patient
+            await interaction.deferReply(); 
 
             const courseCode = interaction.options.getString("course_code") as string;
 
@@ -25,12 +25,12 @@ module.exports = {
             const coursesManager = new CoursesManager(interaction.guild);
             await coursesManager.getOnboardingData();
 
-            let response = coursesManager.deleteCourse(courseCode);
+            let response = await coursesManager.deleteCourse(courseCode);
             if (!response) {
                 response = "Nothing to delete";
             }
 
-            await interaction.reply(response);
+            await interaction.editReply(response);
         } else {
             await interaction.reply("[ERROR] Cannot access server.");
         }
