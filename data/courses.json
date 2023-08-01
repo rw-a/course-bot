@@ -1,16 +1,64 @@
 {
-    "BIOL": ["BIOL1020"],
-    "CHEM": ["CHEM1100"],
-    "COMP": ["COMP3400"],
-    "CSSE": ["CSSE1001","CSSE2002","CSSE2010","CSSE2310"],
-    "DATA": ["DATA2001"],
-    "ECON": ["ECON1050","ECON1310","ECON2011","ECON2021","ECON2030"],
-    "ENGG": ["ENGG1001","ENGG1100"],
-    "INFS": ["INFS1200","INFS2200"],
-    "LAWS": ["LAWS1700","LAWS1701","LAWS1702","LAWS1703"],
-    "MATH": ["MATH1051","MATH1052","MATH1061","MATH1071","MATH1072"],
-    "MGTS": ["MGTS1301","MGTS1601"],
-    "PHYS": ["PHYS1002"],
-    "SCIE": ["SCIE1000", "SCIE1100"],
-    "STAT": ["STAT1201", "STAT1301"]
+  "BIOL": [
+    "BIOL1020"
+  ],
+  "CHEM": [
+    "CHEM1100"
+  ],
+  "COMP": [
+    "COMP2048",
+    "COMP3400"
+  ],
+  "CSSE": [
+    "CSSE1001",
+    "CSSE2002",
+    "CSSE2010",
+    "CSSE2310"
+  ],
+  "DATA": [
+    "DATA2001"
+  ],
+  "ECON": [
+    "ECON1050",
+    "ECON1310",
+    "ECON2011",
+    "ECON2021",
+    "ECON2030"
+  ],
+  "ENGG": [
+    "ENGG1001",
+    "ENGG1100"
+  ],
+  "INFS": [
+    "INFS1200",
+    "INFS2200"
+  ],
+  "LAWS": [
+    "LAWS1700",
+    "LAWS1701",
+    "LAWS1702",
+    "LAWS1703"
+  ],
+  "MATH": [
+    "MATH1051",
+    "MATH1052",
+    "MATH1061",
+    "MATH1071",
+    "MATH1072"
+  ],
+  "MGTS": [
+    "MGTS1301",
+    "MGTS1601"
+  ],
+  "PHYS": [
+    "PHYS1002"
+  ],
+  "SCIE": [
+    "SCIE1000",
+    "SCIE1100"
+  ],
+  "STAT": [
+    "STAT1201",
+    "STAT1301"
+  ]
 }
