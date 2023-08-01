@@ -1,9 +1,9 @@
 import { SlashCommandBuilder, CommandInteraction } from 'discord.js';
-import CoursesManager from "../courses/courses-manager";
+import CoursesManager from "../courses/courses_manager";
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('generate')
+		.setName('courses_sync')
 		.setDescription('Generates the roles, channels and onboarding questions of newly added courses.')
         .setDefaultMemberPermissions(8),    // admin
 	async execute(interaction: CommandInteraction) {

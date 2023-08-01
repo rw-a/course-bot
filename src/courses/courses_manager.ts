@@ -1,5 +1,5 @@
-import ColorsStorage from "./colors-storage";
-import CoursesStorage from "./courses-storage";
+import ColorsStorage from "./colors_storage";
+import CoursesStorage from "./courses_storage";
 import {
     Guild, Role, GuildTextBasedChannel, CategoryChannel, ChannelType, APIGuildOnboarding, Routes,
     APIGuildOnboardingPrompt, GuildOnboardingPromptType, APIGuildOnboardingPromptOption, resolveColor

@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, CommandInteraction } from 'discord.js';
-import CoursesManager from "../courses/courses-manager";
+import CoursesManager from "../courses/courses_manager";
 
 module.exports = {
 	data: new SlashCommandBuilder()

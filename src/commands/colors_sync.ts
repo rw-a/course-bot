@@ -1,9 +1,9 @@
 import { SlashCommandBuilder, CommandInteraction } from 'discord.js';
-import CoursesManager from "../courses/courses-manager";
+import CoursesManager from "../courses/courses_manager";
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('colors')
+		.setName('colors_sync')
 		.setDescription('Updates the colors of the roles.')
         .setDefaultMemberPermissions(8),    // admin
 	async execute(interaction: CommandInteraction) {
