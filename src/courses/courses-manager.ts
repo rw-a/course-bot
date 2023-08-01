@@ -2,7 +2,7 @@ import ColorsStorage from "./colors-storage";
 import CoursesStorage from "./courses-storage";
 import {
     Guild, Role, GuildTextBasedChannel, CategoryChannel, ChannelType, APIGuildOnboarding, Routes,
-    APIGuildOnboardingPrompt, GuildOnboardingPromptType, APIGuildOnboardingPromptOption
+    APIGuildOnboardingPrompt, GuildOnboardingPromptType, APIGuildOnboardingPromptOption, resolveColor
 } from "discord.js";
 
 function generateID(len: number) {
@@ -293,6 +293,28 @@ export default class CoursesManager {
                 this.sendOnboardingInfo();
                 response += `Deleted onboarding prompt for ${courseCode}\n`;
                 break;
+            }
+        }
+
+        return response;
+    }
+
+    updateColors() {
+        let response = "";
+
+        const roles = this.getRoleMap();
+        const flattenedCourses = this.courses.getFlattenedCourses();
+
+        for (const [roleName, role] of roles) {
+            // If role name is a course
+            if (flattenedCourses.has(roleName)) {
+                const expectedColor = resolveColor(this.colors.getColor(roleName));
+
+                // If the colors don't match, update the role's color
+                if (expectedColor !== role.color) {
+                    response += `Changed color of ${roleName} from ${role.color} to ${expectedColor}\n`;
+                    role.setColor(expectedColor);
+                }
             }
         }
 

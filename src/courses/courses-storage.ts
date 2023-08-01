@@ -58,4 +58,18 @@ export default class CoursesStorage {
 
         return courses;
     }
+
+    getFlattenedCourses() {
+        // Gets an array of all the courses
+        // It's actually a man where the key and the value are the same, since it has faster lookup
+
+        const allCourses = new Map<string, string>();
+        const courses = this.getCourses();
+        for (const [courseGroup, courseCodes] of courses) {
+            for (const courseCode of courseCodes) {
+                allCourses.set(courseCode, courseCode);
+            }
+        }
+        return allCourses;
+    }
 }
