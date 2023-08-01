@@ -307,14 +307,16 @@ export default class CoursesManager {
 
         for (const [roleName, role] of roles) {
             // If role name is a course
-            if (flattenedCourses.has(roleName)) {
-                const expectedColor = resolveColor(this.colors.getColor(roleName));
+            if (!flattenedCourses.has(roleName)) {
+                continue;
+            }
 
-                // If the colors don't match, update the role's color
-                if (expectedColor !== role.color) {
-                    response += `Changed color of ${roleName} from ${role.color} to ${expectedColor}\n`;
-                    role.setColor(expectedColor);
-                }
+            const expectedColor = resolveColor(this.colors.getColor(roleName));
+
+            // If the colors don't match, update the role's color
+            if (expectedColor !== role.color) {
+                response += `Changed color of ${roleName} from #${role.color.toString(16).toUpperCase()} to #${expectedColor.toString(16).toUpperCase()}\n`;
+                role.setColor(expectedColor);
             }
         }
 

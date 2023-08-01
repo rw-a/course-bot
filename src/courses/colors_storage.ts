@@ -69,7 +69,7 @@ export default class ColorsStorage {
             return this.colors[courseGroup];
         } else {
             const newColor = this.getRandomColor();
-            this.addColor(courseCode, newColor);
+            this.addColor(courseGroup, newColor);
             return newColor;
         }
     }

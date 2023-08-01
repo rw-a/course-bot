@@ -11,7 +11,11 @@ module.exports = {
             // await interaction.deferReply(); // might take a while so tell Discord to be patient
 
             const coursesManager = new CoursesManager(interaction.guild);
-            const response = coursesManager.updateColors();
+
+            let response = coursesManager.updateColors();
+            if (!response) {
+                response = "All up to date.";
+            }
 
             await interaction.reply(response);
         } else {
