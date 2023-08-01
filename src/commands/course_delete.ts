@@ -1,5 +1,7 @@
 import { SlashCommandBuilder, CommandInteraction } from 'discord.js';
 import CoursesManager from "../courses/courses_manager";
+import { isCourseCode } from '../utilities';
+import { CourseCode } from '../types';
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -13,14 +15,14 @@ module.exports = {
                 .setRequired(true)),    
 	async execute(interaction: CommandInteraction) {
         if (interaction.guild) {
-            await interaction.deferReply(); 
-
-            const courseCode = interaction.options.getString("course_code") as string;
-
-            if (courseCode.length != 8) {
+            const courseCode = interaction.options.getString("course_code").toUpperCase() as CourseCode;
+            
+            if (!isCourseCode(courseCode)) {
                 await interaction.reply("Invalid course code.");
                 return;
             }
+
+            await interaction.deferReply(); 
 
             const coursesManager = new CoursesManager(interaction.guild);
             await coursesManager.getOnboardingData();

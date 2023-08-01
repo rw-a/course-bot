@@ -5,15 +5,7 @@ import {
   APIGuildOnboardingPrompt, GuildOnboardingPromptType, APIGuildOnboardingPromptOption, resolveColor
 } from "discord.js";
 import { CourseCode, CourseGroup, ChannelName } from "../types";
-
-function generateID(len: number) {
-  let result = '';
-  const characters = '0123456789';
-  for (let i = 0; i < (len); i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-}
+import { generateID } from "../utilities";
 
 export default class CoursesManager {
   guild: Guild
@@ -185,7 +177,7 @@ export default class CoursesManager {
     // Find courses which are stored but not a role
     for (const [courseGroup, courseCodes] of this.courses.getCourses()) {
       // Get the associated channel category for the course group, or create it if missing
-      const channelCategory = await this.getCategoryChannel(courseGroup);   // not ideal but works
+      const channelCategory = await this.getCategoryChannel(courseGroup);
 
       // Get the associated onboarding prompt for the course group, or create it if missing
       const onboardingPrompt = this.getOnBoardingPrompt(courseGroup);
@@ -234,12 +226,13 @@ export default class CoursesManager {
     const courseGroup = courseCode.slice(0, 4) as CourseGroup;
 
     // Get the associated channel category for the course group, or create it if missing
-    const channelCategory = await this.getCategoryChannel(courseGroup);   // not ideal but works
+    const channelCategory = await this.getCategoryChannel(courseGroup);
 
     // Get the associated onboarding prompt for the course group, or create it if missing
     const onboardingPrompt = this.getOnBoardingPrompt(courseGroup);
     const onBoardingPromptOptions = this.getOnboardingPromptOptionMap(onboardingPrompt);
 
+    // Create role for course if missing
     let role: Role;
     if (roles.has(courseCode)) {
       role = roles.get(courseCode) as Role;
