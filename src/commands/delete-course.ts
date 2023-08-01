@@ -25,7 +25,7 @@ module.exports = {
             const coursesManager = new CoursesManager(interaction.guild);
             await coursesManager.getOnboardingData();
 
-            let response = await coursesManager.deleteCourse(courseCode);
+            let response = coursesManager.deleteCourse(courseCode);
             if (!response) {
                 response = "Nothing to delete";
             }
