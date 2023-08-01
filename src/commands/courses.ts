@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, CommandInteraction } from 'discord.js';
-import CoursesStorage from "../courses/courses-storage";
+import CoursesStorage from "../courses/courses_storage";
 
 module.exports = {
 	data: new SlashCommandBuilder()
